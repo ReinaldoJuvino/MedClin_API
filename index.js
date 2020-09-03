@@ -1,6 +1,9 @@
 const app = require('express')();  
 const consign = require('consign');
 const db = require('./src/config/db');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 app.db = db;
 
