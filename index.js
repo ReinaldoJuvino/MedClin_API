@@ -7,7 +7,8 @@ dotenv.config();
 
 app.db = db;
 
-consign() 
+consign()
+    .include('./src/config/passport.js')
     .then('./src/config/middlewares.js')
     .then('./src/api/validation.js')
     .then('./src/api')
