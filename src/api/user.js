@@ -10,8 +10,10 @@ module.exports = app => {
 
     const save = async (request, response) => {
         
-        const user = {...request.body}
-        
+        const {name,email,dateofbirth,cpf,sexo,password,confirmPassword} = request.body
+        const user = {name,email,dateofbirth,cpf,sexo,password,confirmPassword}
+        const endereco ={...request.body.endereco}
+
         if(request.params.id) user.id = request.params.id
         
         try {
@@ -20,16 +22,23 @@ module.exports = app => {
             existOrError(user.password,"Senha não informada")
             existOrError(user.confirmPassword, "Confirmação de Senha Inválida")
             equalsOrError(user.password, user.confirmPassword, "Senhas não conferem")
+            existOrError(user.dateofbirth, "Data de nascimento não informada")
+            existOrError(user.cpf,"CPF não informado")
+            existOrError(user.sexo, "Sexo não informado")
 
-            const userFromDB = await app.db('users')
+            const userFromEmailDB = await app.db('users')
                 .where({email: user.email}).first()
             
+            const userFromCPFDB = await app.db('users')
+                .where({cpf: user.cpf}).first()
+            
             if(!user.id){
-                notExistOrError(userFromDB, "Usuário Já cadastrado")
+                notExistOrError(userFromEmailDB, "Email já vinculado a um usuário")
+                notExistOrError(userFromCPFDB, "Cpf já cadastrado em outro Usuário")
             }
 
         } catch (msg) {
-            return response.status(400).send(msg);
+            return response.status(400).json({error: msg});
         }
 
         user.password = encryptPassword(user.password)
@@ -42,17 +51,34 @@ module.exports = app => {
                 .then(_ => response.status(204).send())
                 .catch(err => response.status(500).send(err))
         } else {
-            app.db('users')
-                .insert(user)
-                .then(_ => response.status(204).send())
-                .catch(err => response.status(500).send(err))
+            app.db('endereco')
+            .insert(endereco)
+            .returning('id')
+            .then(function (id){
+                user.enderecoId = id[0];
+                app.db('users')
+                    .insert(user)
+                    .then(_ => response.status(204).send())
+                    .catch(err => response.status(500).send(err))
+            });
+            
         }
     }
-    const get = (request,response)=>{
+    const get = async (request,response)=>{
         app.db('users')
-            .select('id','name','email','admin')
+            .select('id','name','email','admin','dateofbirth','cpf','sexo','enderecoId')
             .then(users => response.json(users))
             .catch(err => response.status(500).send(err))
     }
-    return { save, get }
+
+    const getEnderecoById = async (request,response)=> {
+
+        app.db('endereco')
+            .select()
+            .where({id: request.params.id})
+            .then(endereco => response.json(endereco))
+            .catch(err => response.status(500).send(err))
+    }
+
+    return { save, get, getEnderecoById }
 }
