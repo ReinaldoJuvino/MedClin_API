@@ -31,7 +31,7 @@ module.exports = app => {
         }
         response.json({
             ...payload,
-            tokem: jwt.encode(payload, process.env.authSecret)
+            token: jwt.encode(payload, process.env.authSecret)
         })
     }
     const validateToken = async (request,response) =>{
