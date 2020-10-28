@@ -13,7 +13,7 @@ module.exports = app => {
             .where({email: request.body.email})
             .first();
 
-        if (!user) return response.status(400).send('Usuário não encontrado');
+    if (!user) return response.status(400).send('Usuário não encontrado');
 
         const isMatch = bcrypt.compareSync(request.body.password, user.password)
         if (!isMatch) return response.status(401).send('Email/Senha Inválidos!')
@@ -28,6 +28,7 @@ module.exports = app => {
             admin: user.admin,
             iat: now,
             exp: now + (60*60*24)
+            
         }
         response.json({
             ...payload,

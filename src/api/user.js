@@ -79,6 +79,5 @@ module.exports = app => {
             .then(endereco => response.json(endereco))
             .catch(err => response.status(500).send(err))
     }
-
     return { save, get, getEnderecoById }
 }
